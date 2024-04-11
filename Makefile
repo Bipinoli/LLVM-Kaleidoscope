@@ -1,5 +1,5 @@
 CC = clang++
-CFLAGS = -Wall
+CFLAGS = -std=c++11 -Wall
 INC = 
 
 BUILD_DIR = ./build

@@ -1,9 +1,12 @@
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
+#include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
-// lexer
+// ---------- LEXER
 // - unrecognized char is return as it is in ascii numbers
 //   so the positive value in token means unknown character
 enum Token {
@@ -64,5 +67,66 @@ static int get_tok() {
   last_char = getchar();
   return unknown;
 }
+
+// ------ PARSER
+class ExprAST {
+public:
+  virtual ~ExprAST() = default;
+};
+
+class NumExprAST : public ExprAST {
+  double val;
+
+public:
+  NumExprAST(double val) : val(val) {}
+};
+
+class VariableExprAST : public ExprAST {
+  std::string name;
+
+public:
+  VariableExprAST(std::string &name) : name(name) {}
+};
+
+class BinaryExprAST : public ExprAST {
+  char op;
+  std::unique_ptr<ExprAST> lhs, rhs;
+
+public:
+  BinaryExprAST(char op, std::unique_ptr<ExprAST> lhs,
+                std::unique_ptr<ExprAST> rhs)
+      : op(op), lhs(std::move(lhs)), rhs(std::move(rhs)) {}
+};
+
+class FuncCallExprAST : public ExprAST {
+  std::string callee;
+  std::vector<std::unique_ptr<ExprAST>> args;
+
+public:
+  FuncCallExprAST(const std::string &callee,
+                  std::vector<std::unique_ptr<ExprAST>> args)
+      : callee(callee), args(std::move(args)) {}
+};
+
+class FuncPrototypeAST {
+  std::string name;
+  std::vector<std::string> args;
+
+public:
+  FuncPrototypeAST(std::string &name, std::vector<std::string> args)
+      : name(name), args(std::move(args)) {}
+
+  const std::string &getName() const { return name; }
+};
+
+class FuncDefAST {
+  std::unique_ptr<FuncPrototypeAST> proto;
+  std::unique_ptr<ExprAST> body;
+
+public:
+  FuncDefAST(std::unique_ptr<FuncPrototypeAST> proto,
+             std::unique_ptr<ExprAST> body)
+      : proto(std::move(proto)), body(std::move(body)) {}
+};
 
 int main() { printf("hi\n"); }
